@@ -27,10 +27,10 @@ export function GameCard({
 }: GameCardProps) {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-green-500'
-      case 'medium': return 'bg-yellow-500'
-      case 'hard': return 'bg-red-500'
-      default: return 'bg-gray-500'
+      case 'easy': return 'from-green-400 to-emerald-500'
+      case 'medium': return 'from-yellow-400 to-orange-500'
+      case 'hard': return 'from-red-400 to-pink-500'
+      default: return 'from-gray-400 to-gray-500'
     }
   }
 
@@ -43,43 +43,62 @@ export function GameCard({
     }
   }
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Hayvanlar': return '🐾'
+      case 'Yiyecekler': return '🍕'
+      case 'Spor': return '⚽'
+      case 'Teknoloji': return '💻'
+      case 'Meslekler': return '👨‍⚕️'
+      case 'Bilim': return '🔬'
+      case 'Soyut': return '💭'
+      default: return '🎯'
+    }
+  }
+
   return (
-    <Card className={cn("w-full max-w-2xl mx-auto", className)}>
-      <CardHeader className="text-center space-y-4">
-        <div className="flex justify-between items-center flex-wrap gap-2">
-          <Badge variant="secondary" className="text-sm">
-            {card.category}
+    <Card className={cn("modern-card w-full max-w-4xl mx-auto animate-fade-in-up", className)}>
+      <CardHeader className="text-center space-y-6 pb-8">
+        <div className="flex justify-center items-center gap-4 flex-wrap">
+          <Badge 
+            variant="secondary" 
+            className="text-sm px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 border-blue-200"
+          >
+            {getCategoryIcon(card.category)} {card.category}
           </Badge>
           <Badge 
-            className={cn("text-white", getDifficultyColor(card.difficulty))}
+            className={cn("text-white px-4 py-2 rounded-full bg-gradient-to-r", getDifficultyColor(card.difficulty))}
           >
             {getDifficultyText(card.difficulty)}
           </Badge>
-          <Badge variant="outline" className="text-sm">
-            {card.points} puan
+          <Badge 
+            variant="outline" 
+            className="text-sm px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border-purple-200"
+          >
+            ⭐ {card.points} puan
           </Badge>
         </div>
         
         <div className="word-display">
-          <h2 className="word text-5xl font-bold text-foreground">
+          <h2 className="word text-6xl font-black text-foreground">
             {card.word}
           </h2>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         <div className="taboo-section">
-          <h3 className="taboo-title text-lg font-bold text-red-800 mb-4 text-center">
+          <h3 className="taboo-title text-2xl font-bold text-red-800 mb-6 text-center">
             🚫 Tabu Kelimeler
           </h3>
-          <div className="taboo-words flex flex-wrap gap-2 justify-center">
+          <div className="taboo-words flex flex-wrap gap-3 justify-center">
             {card.tabooWords.map((word, index) => (
               <TabooButton
                 key={index}
                 word={word}
                 onClick={() => onTabooClick(word)}
                 isUsed={usedTabooWords.includes(word)}
-                className="min-w-[100px]"
+                className="min-w-[120px] text-sm font-semibold"
               />
             ))}
           </div>
@@ -88,7 +107,7 @@ export function GameCard({
         <div className="game-controls flex gap-4 justify-center flex-wrap">
           <Button
             onClick={onCorrect}
-            className="control-button correct-button px-8 py-3 text-lg"
+            className="modern-button correct-button px-8 py-4 text-lg font-bold"
             size="lg"
           >
             ✅ Doğru (+{card.points})
@@ -97,7 +116,7 @@ export function GameCard({
           {allowPass && (
             <Button
               onClick={onPass}
-              className="control-button pass-button px-8 py-3 text-lg"
+              className="modern-button pass-button px-8 py-4 text-lg font-bold"
               size="lg"
             >
               ⏭️ Geç
@@ -105,8 +124,10 @@ export function GameCard({
           )}
         </div>
 
-        <div className="text-center text-muted-foreground text-sm">
-          <p>💡 Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!</p>
+        <div className="text-center text-muted-foreground text-lg font-medium">
+          <p className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            💡 Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
+          </p>
         </div>
       </CardContent>
     </Card>

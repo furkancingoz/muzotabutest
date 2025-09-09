@@ -127,11 +127,11 @@ export default function Scoreboard({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Doğru Cevap:</span>
-                <Badge variant="success">{totalStats.correctWords}</Badge>
+                <Badge variant="default" className="bg-green-500 text-white">{totalStats.correctWords}</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Başarı Oranı:</span>
-                <Badge variant="info">{totalStats.averageAccuracy}%</Badge>
+                <Badge variant="default" className="bg-blue-500 text-white">{totalStats.averageAccuracy}%</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Toplam Puan:</span>

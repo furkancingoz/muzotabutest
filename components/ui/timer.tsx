@@ -16,10 +16,11 @@ export function Timer({ timeLeft, totalTime, className }: TimerProps) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Badge 
-        variant={isDanger ? "destructive" : isWarning ? "warning" : "default"}
+        variant={isDanger ? "destructive" : "default"}
         className={cn(
           "text-lg font-bold px-4 py-2",
-          isDanger && "animate-pulse"
+          isDanger && "animate-pulse",
+          isWarning && "bg-yellow-500 text-white"
         )}
       >
         ⏱️ {timeLeft}s
