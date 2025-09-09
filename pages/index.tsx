@@ -95,59 +95,59 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+      <div className="game-container">
+        <div className="game-card">
           {!gameStarted ? (
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-800 mb-6">🎯 Tabu Oyunu</h1>
-              <p className="text-lg text-gray-600 mb-8">
+              <h1 className="title">🎯 Tabu Oyunu</h1>
+              <p className="subtitle">
                 Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
               </p>
               <button
                 onClick={startGame}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-4 px-8 rounded-full text-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
+                className="btn btn-primary"
               >
                 Oyunu Başlat
               </button>
             </div>
           ) : gameOver ? (
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-800 mb-6">🎉 Oyun Bitti!</h1>
-              <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-2xl p-6 mb-8">
-                <h2 className="text-3xl font-bold mb-2">Skorunuz</h2>
-                <p className="text-6xl font-bold">{score}</p>
-                <p className="text-lg">doğru kelime!</p>
+              <h1 className="title">🎉 Oyun Bitti!</h1>
+              <div className="score-display">
+                <h2 className="score-text">Skorunuz</h2>
+                <p className="score-number">{score}</p>
+                <p className="score-text">doğru kelime!</p>
               </div>
               <button
                 onClick={resetGame}
-                className="bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold py-4 px-8 rounded-full text-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105"
+                className="btn btn-info"
               >
                 Tekrar Oyna
               </button>
             </div>
           ) : (
             <div className="text-center">
-              <div className="flex justify-between items-center mb-8">
-                <div className="bg-blue-500 text-white px-4 py-2 rounded-full font-bold">
+              <div className="game-status">
+                <div className="status-badge status-score">
                   Skor: {score}
                 </div>
-                <div className="bg-red-500 text-white px-4 py-2 rounded-full font-bold">
+                <div className="status-badge status-time">
                   Süre: {timeLeft}s
                 </div>
               </div>
 
               {currentCard && (
-                <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-8 mb-8">
-                  <h2 className="text-4xl font-bold text-gray-800 mb-6">
+                <div className="word-card">
+                  <h2 className="word">
                     {currentCard.word}
                   </h2>
-                  <div className="bg-red-100 border-2 border-red-300 rounded-xl p-4">
-                    <h3 className="text-lg font-bold text-red-800 mb-3">🚫 Tabu Kelimeler:</h3>
-                    <div className="flex flex-wrap gap-2 justify-center">
+                  <div className="taboo-section">
+                    <h3 className="taboo-title">🚫 Tabu Kelimeler:</h3>
+                    <div className="taboo-words">
                       {currentCard.tabooWords.map((word, index) => (
                         <span
                           key={index}
-                          className="bg-red-200 text-red-800 px-3 py-1 rounded-full text-sm font-medium"
+                          className="taboo-word"
                         >
                           {word}
                         </span>
@@ -157,22 +157,22 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="flex gap-4 justify-center">
+              <div className="game-controls">
                 <button
                   onClick={handleCorrect}
-                  className="bg-green-500 text-white font-bold py-4 px-8 rounded-full text-xl hover:bg-green-600 transition-all duration-300 transform hover:scale-105"
+                  className="btn btn-success"
                 >
                   ✅ Doğru
                 </button>
                 <button
                   onClick={handlePass}
-                  className="bg-orange-500 text-white font-bold py-4 px-8 rounded-full text-xl hover:bg-orange-600 transition-all duration-300 transform hover:scale-105"
+                  className="btn btn-warning"
                 >
                   ⏭️ Geç
                 </button>
               </div>
 
-              <p className="text-gray-600 mt-6 text-sm">
+              <p className="game-instruction">
                 Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
               </p>
             </div>
