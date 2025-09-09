@@ -1,15 +1,11 @@
 import * as React from "react"
 import Head from "next/head"
 import { useGame } from "../hooks/useGame"
-import { ToastProvider } from "../components/ui/toast-provider"
 import PlayerSetup from "../components/PlayerSetup"
 import GameSettings from "../components/GameSettings"
 import GameBoard from "../components/GameBoard"
 import Scoreboard from "../components/Scoreboard"
 import GameResults from "../components/GameResults"
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
-import { Button } from "../components/ui/button"
-import { Badge } from "../components/ui/badge"
 
 export default function Home() {
   const {
@@ -33,31 +29,12 @@ export default function Home() {
     switch (gameState.gamePhase) {
       case 'waiting':
         return (
-          <div className="space-y-8">
-            {/* Modern Header */}
-            <Card className="modern-card text-center animate-fade-in-up">
-              <CardHeader className="pb-6">
-                <CardTitle className="game-title text-6xl font-black mb-4">
-                  🎯 Gelişmiş Tabu Oyunu
-                </CardTitle>
-                <p className="game-subtitle text-xl text-muted-foreground font-medium">
-                  Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
-                </p>
-                <div className="flex justify-center gap-4 mt-6">
-                  <Badge variant="outline" className="px-4 py-2 text-sm">
-                    🎮 {gameState.players.length} Oyuncu
-                  </Badge>
-                  <Badge variant="outline" className="px-4 py-2 text-sm">
-                    📚 140+ Kelime
-                  </Badge>
-                  <Badge variant="outline" className="px-4 py-2 text-sm">
-                    🏆 8 Kategori
-                  </Badge>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Player Setup */}
+          <div className="fade-in">
+            <h1 className="game-title">🎯 Gelişmiş Tabu Oyunu</h1>
+            <p className="game-subtitle">
+              Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
+            </p>
+            
             <PlayerSetup
               players={gameState.players}
               onAddPlayer={addPlayer}
@@ -66,24 +43,19 @@ export default function Home() {
               maxPlayers={gameState.settings.maxPlayers}
             />
 
-            {/* Settings Toggle */}
-            <Card className="modern-card">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowSettings(!showSettings)}
-                    className="px-8 py-3 text-lg font-semibold hover-lift"
-                  >
-                    ⚙️ {showSettings ? 'Ayarları Gizle' : 'Ayarları Göster'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="card">
+              <div className="text-center">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowSettings(!showSettings)}
+                >
+                  ⚙️ {showSettings ? 'Ayarları Gizle' : 'Ayarları Göster'}
+                </button>
+              </div>
+            </div>
 
-            {/* Settings */}
             {showSettings && (
-              <div className="animate-fade-in-up">
+              <div className="slide-in">
                 <GameSettings
                   settings={gameState.settings}
                   onUpdateSettings={updateSettings}
@@ -96,10 +68,26 @@ export default function Home() {
       case 'playing':
       case 'paused':
         return (
-          <div className="space-y-6">
-            {/* Game Layout */}
+          <div className="fade-in">
+            <div className="game-info">
+              <div className="round-info">
+                Tur {gameState.round}/{gameState.settings.totalRounds}
+              </div>
+              <div className="flex gap-3">
+                <span className="category-badge">
+                  {gameState.currentCard?.category}
+                </span>
+                <span className="difficulty-badge">
+                  {gameState.settings.difficulty === 'easy' ? 'Kolay' : 
+                   gameState.settings.difficulty === 'medium' ? 'Orta' : 'Zor'}
+                </span>
+                <span className="points-badge">
+                  {gameState.currentCard?.points} puan
+                </span>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Main Game Area */}
               <div className="lg:col-span-2">
                 <GameBoard
                   currentCard={gameState.currentCard}
@@ -116,7 +104,6 @@ export default function Home() {
                 />
               </div>
               
-              {/* Sidebar */}
               <div className="lg:col-span-1">
                 <Scoreboard
                   players={gameState.players}
@@ -154,18 +141,13 @@ export default function Home() {
         <meta name="description" content="Çoklu oyuncu, kategoriler ve zorluk seviyeleri ile gelişmiş Tabu oyunu" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </Head>
 
-      <ToastProvider>
-        <div className="game-container min-h-screen flex items-center justify-center p-4">
-          <div className="game-wrapper w-full max-w-7xl">
-            {renderGameContent()}
-          </div>
+      <div className="game-container">
+        <div className="game-wrapper">
+          {renderGameContent()}
         </div>
-      </ToastProvider>
+      </div>
     </>
   )
 }

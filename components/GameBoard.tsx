@@ -1,11 +1,5 @@
 import * as React from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Timer } from "@/components/ui/timer"
-import { GameCard } from "@/components/ui/game-card"
-import { useToast } from "@/components/ui/toast-provider"
-import type { TabuCard, Player } from "@/types/game"
+import type { TabuCard, Player } from "../types/game"
 
 interface GameBoardProps {
   currentCard: TabuCard | null
@@ -21,137 +15,163 @@ interface GameBoardProps {
   allowPass: boolean
 }
 
-export default function GameBoard({ 
-  currentCard, 
-  currentPlayer, 
-  timeLeft, 
+export default function GameBoard({
+  currentCard,
+  currentPlayer,
+  timeLeft,
   totalTime,
-  round, 
+  round,
   totalRounds,
-  onCorrect, 
-  onPass, 
-  onNextPlayer, 
+  onCorrect,
+  onPass,
+  onNextPlayer,
   onPause,
-  allowPass 
+  allowPass
 }: GameBoardProps) {
   const [usedTabooWords, setUsedTabooWords] = React.useState<string[]>([])
-  const { addToast } = useToast()
 
   React.useEffect(() => {
     setUsedTabooWords([])
   }, [currentCard])
 
   const handleTabooClick = (word: string) => {
-    if (usedTabooWords.includes(word)) return
-    
-    setUsedTabooWords(prev => [...prev, word])
-    addToast({
-      title: "Tabu Kelime Kullanıldı!",
-      description: `"${word}" kelimesi kullanıldı ve işaretlendi.`,
-      variant: "warning",
-      duration: 2000
-    })
+    if (!usedTabooWords.includes(word)) {
+      setUsedTabooWords([...usedTabooWords, word])
+    }
   }
 
-  const handleCorrect = () => {
-    addToast({
-      title: "Doğru! 🎉",
-      description: `+${currentCard?.points || 0} puan kazandınız!`,
-      variant: "success",
-      duration: 2000
-    })
-    onCorrect()
+  const resetTabooWords = () => {
+    setUsedTabooWords([])
   }
 
-  const handlePass = () => {
-    addToast({
-      title: "Geçildi",
-      description: "Kelime geçildi.",
-      variant: "info",
-      duration: 1500
-    })
-    onPass()
+  if (!currentCard || !currentPlayer) {
+    return (
+      <div className="card text-center">
+        <h2>Oyun yükleniyor...</h2>
+      </div>
+    )
   }
 
-  const handleNextPlayer = () => {
-    addToast({
-      title: "Sıradaki Oyuncu",
-      description: `Sıra ${currentPlayer?.name} oyuncusuna geçti.`,
-      variant: "info",
-      duration: 2000
-    })
-    onNextPlayer()
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return '#00b894'
+      case 'medium': return '#f39c12'
+      case 'hard': return '#e74c3c'
+      default: return '#6c757d'
+    }
+  }
+
+  const getDifficultyText = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'Kolay'
+      case 'medium': return 'Orta'
+      case 'hard': return 'Zor'
+      default: return 'Bilinmiyor'
+    }
+  }
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Hayvanlar': return '🐾'
+      case 'Yiyecekler': return '🍕'
+      case 'Spor': return '⚽'
+      case 'Teknoloji': return '💻'
+      case 'Meslekler': return '👨‍⚕️'
+      case 'Bilim': return '🔬'
+      case 'Soyut': return '💭'
+      default: return '🎯'
+    }
   }
 
   return (
     <div className="space-y-6">
-      {/* Game Header */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-sm">
-                Tur {round}/{totalRounds}
-              </Badge>
-              <Timer timeLeft={timeLeft} totalTime={totalTime} />
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{currentPlayer?.avatar}</span>
-              <div>
-                <div className="font-semibold">{currentPlayer?.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {currentPlayer?.score} puan
-                </div>
-              </div>
-            </div>
+      {/* Timer */}
+      <div className={`timer ${timeLeft <= 10 ? 'warning' : ''} ${timeLeft <= 5 ? 'danger' : ''}`}>
+        <span>⏱️</span>
+        <span className="timer-display">{timeLeft}s</span>
+        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-1000"
+            style={{ width: `${(timeLeft / totalTime) * 100}%` }}
+          />
+        </div>
+      </div>
 
-            <Button
-              variant="outline"
-              onClick={onPause}
-              className="shrink-0"
+      {/* Game Controls */}
+      <div className="flex gap-3 justify-center flex-wrap">
+        <button className="btn btn-next" onClick={onNextPlayer}>
+          ⏭️ Sıradaki Oyuncu
+        </button>
+        <button className="btn btn-secondary" onClick={resetTabooWords}>
+          🔄 Tabu Kelimeleri Sıfırla
+        </button>
+        <button className="btn btn-secondary" onClick={onPause}>
+          ⏸️ Duraklat
+        </button>
+      </div>
+
+      {/* Main Game Card */}
+      <div className="card">
+        <div className="text-center mb-6">
+          <div className="flex justify-center items-center gap-4 mb-4 flex-wrap">
+            <span className="text-2xl">{getCategoryIcon(currentCard.category)}</span>
+            <span className="text-xl font-bold">{currentCard.category}</span>
+            <span 
+              className="px-3 py-1 rounded-full text-white font-semibold"
+              style={{ backgroundColor: getDifficultyColor(currentCard.difficulty) }}
             >
-              ⏸️ Duraklat
-            </Button>
+              {getDifficultyText(currentCard.difficulty)}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-green-500 text-white font-semibold">
+              ⭐ {currentCard.points} puan
+            </span>
           </div>
-        </CardHeader>
-      </Card>
-
-      {/* Game Card */}
-      {currentCard && (
-        <GameCard
-          card={currentCard}
-          onCorrect={handleCorrect}
-          onPass={handlePass}
-          onTabooClick={handleTabooClick}
-          usedTabooWords={usedTabooWords}
-          allowPass={allowPass}
-          className="animate-fade-in-up"
-        />
-      )}
-
-      {/* Additional Controls */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Button
-              onClick={handleNextPlayer}
-              variant="outline"
-              className="px-6 py-2"
-            >
-              👤 Sıradaki Oyuncu
-            </Button>
-            
-            <Button
-              onClick={() => setUsedTabooWords([])}
-              variant="ghost"
-              className="px-6 py-2"
-            >
-              🔄 Tabu Kelimeleri Sıfırla
-            </Button>
+          
+          <div className="word-display">
+            <h2 className="word">{currentCard.word}</h2>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Taboo Words */}
+        <div className="taboo-section">
+          <h3 className="taboo-title">🚫 Tabu Kelimeler</h3>
+          <div className="taboo-words">
+            {currentCard.tabooWords.map((word, index) => (
+              <button
+                key={index}
+                className={`taboo-word ${usedTabooWords.includes(word) ? 'used' : ''}`}
+                onClick={() => handleTabooClick(word)}
+                disabled={usedTabooWords.includes(word)}
+              >
+                {usedTabooWords.includes(word) && '✕ '}{word}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Game Actions */}
+        <div className="game-controls">
+          <button
+            className="btn btn-correct"
+            onClick={onCorrect}
+          >
+            ✅ Doğru (+{currentCard.points})
+          </button>
+          
+          {allowPass && (
+            <button
+              className="btn btn-pass"
+              onClick={onPass}
+            >
+              ⏭️ Geç
+            </button>
+          )}
+        </div>
+
+        <div className="instruction">
+          💡 Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,163 +1,107 @@
 import * as React from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { PlayerCard } from "@/components/ui/player-card"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/components/ui/toast-provider"
-import type { Player } from "@/types/game"
+import type { Player } from "../types/game"
 
 interface PlayerSetupProps {
   players: Player[]
-  onAddPlayer: (name: string) => boolean
+  onAddPlayer: (name: string) => void
   onRemovePlayer: (id: string) => void
-  onStartGame: () => boolean
+  onStartGame: () => void
   maxPlayers: number
 }
 
-export default function PlayerSetup({ 
-  players, 
-  onAddPlayer, 
-  onRemovePlayer, 
-  onStartGame, 
-  maxPlayers 
+export default function PlayerSetup({
+  players,
+  onAddPlayer,
+  onRemovePlayer,
+  onStartGame
 }: PlayerSetupProps) {
   const [newPlayerName, setNewPlayerName] = React.useState("")
-  const { addToast } = useToast()
 
-  const handleAddPlayer = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newPlayerName.trim()) {
-      addToast({
-        title: "Hata",
-        description: "Lütfen oyuncu adı girin.",
-        variant: "error"
-      })
-      return
-    }
-    
-    if (onAddPlayer(newPlayerName.trim())) {
-      addToast({
-        title: "Oyuncu Eklendi",
-        description: `${newPlayerName} oyuna eklendi.`,
-        variant: "success"
-      })
+  const handleAddPlayer = () => {
+    if (newPlayerName.trim() && players.length < 8) {
+      onAddPlayer(newPlayerName.trim())
       setNewPlayerName("")
-    } else {
-      addToast({
-        title: "Hata",
-        description: "Maksimum oyuncu sayısına ulaşıldı.",
-        variant: "error"
-      })
     }
   }
 
-  const handleRemovePlayer = (id: string) => {
-    if (players.length <= 2) {
-      addToast({
-        title: "Hata",
-        description: "En az 2 oyuncu olmalı.",
-        variant: "error"
-      })
-      return
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleAddPlayer()
     }
-    
-    const player = players.find(p => p.id === id)
-    if (player) {
-      addToast({
-        title: "Oyuncu Çıkarıldı",
-        description: `${player.name} oyundan çıkarıldı.`,
-        variant: "info"
-      })
-    }
-    onRemovePlayer(id)
   }
 
-  const handleStartGame = () => {
-    if (players.length < 2) {
-      addToast({
-        title: "Hata",
-        description: "En az 2 oyuncu gerekli.",
-        variant: "error"
-      })
-      return
-    }
-    
-    if (onStartGame()) {
-      addToast({
-        title: "Oyun Başladı!",
-        description: "İyi eğlenceler! 🎉",
-        variant: "success"
-      })
-    }
-  }
+  const avatars = ['🐱', '🐶', '🐰', '🐸', '🐨', '🐯', '🦁', '🐻', '🐼', '🦊', '🐺', '🦄']
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">
-            👥 Oyuncu Ayarları
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Players List */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Oyuncular ({players.length}/{maxPlayers})</h3>
-              <Badge variant="outline">
-                {players.length} oyuncu
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {players.map((player, index) => (
-                <PlayerCard
-                  key={player.id}
-                  player={player}
-                  rank={index + 1}
-                  isActive={player.isActive}
-                  onRemove={handleRemovePlayer}
-                  canRemove={players.length > 2}
-                  className="animate-fade-in-up"
-                />
-              ))}
+    <div className="card">
+      <h2 className="text-2xl font-bold mb-6 text-center">Oyuncular</h2>
+      
+      {/* Add Player */}
+      <div className="mb-6">
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={newPlayerName}
+            onChange={(e) => setNewPlayerName(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Oyuncu adı girin..."
+            className="setting-input flex-1"
+            maxLength={20}
+          />
+          <button
+            className="btn btn-next"
+            onClick={handleAddPlayer}
+            disabled={!newPlayerName.trim() || players.length >= 8}
+          >
+            ➕ Ekle
+          </button>
+        </div>
+        {players.length >= 8 && (
+          <p className="text-red-500 text-sm mt-2">Maksimum 8 oyuncu eklenebilir</p>
+        )}
+      </div>
+
+      {/* Players List */}
+      <div className="scoreboard">
+        {players.map((player, index) => (
+          <div key={player.id} className="player-card">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{avatars[index % avatars.length]}</span>
+                <div>
+                  <div className="player-name">{player.name}</div>
+                  <div className="player-score">{player.score} puan</div>
+                </div>
+              </div>
+              <button
+                className="btn btn-secondary"
+                onClick={() => onRemovePlayer(player.id)}
+                style={{ padding: '8px 12px', fontSize: '0.9rem' }}
+              >
+                ✕
+              </button>
             </div>
           </div>
+        ))}
+      </div>
 
-          {/* Add Player Form */}
-          {players.length < maxPlayers && (
-            <Card className="border-dashed">
-              <CardContent className="p-4">
-                <form onSubmit={handleAddPlayer} className="flex gap-2">
-                  <Input
-                    value={newPlayerName}
-                    onChange={(e) => setNewPlayerName(e.target.value)}
-                    placeholder="Oyuncu adı girin..."
-                    maxLength={20}
-                    className="flex-1"
-                  />
-                  <Button type="submit" className="shrink-0">
-                    ➕ Ekle
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          )}
+      {/* Start Game Button */}
+      {players.length >= 2 && (
+        <div className="text-center mt-6">
+          <button
+            className="btn btn-start"
+            onClick={onStartGame}
+          >
+            🎮 Oyunu Başlat
+          </button>
+        </div>
+      )}
 
-          {/* Start Game Button */}
-          <div className="text-center">
-            <Button
-              onClick={handleStartGame}
-              disabled={players.length < 2}
-              size="lg"
-              className="px-8 py-3 text-lg font-semibold"
-            >
-              🚀 Oyunu Başlat ({players.length} oyuncu)
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {players.length < 2 && (
+        <div className="text-center text-gray-500 mt-6">
+          En az 2 oyuncu gereklidir
+        </div>
+      )}
     </div>
   )
 }
