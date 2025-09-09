@@ -1,11 +1,15 @@
-import { useState } from 'react'
-import Head from 'next/head'
-import { useGame } from '../hooks/useGame'
-import PlayerSetup from '../components/PlayerSetup'
-import GameSettings from '../components/GameSettings'
-import GameBoard from '../components/GameBoard'
-import Scoreboard from '../components/Scoreboard'
-import GameResults from '../components/GameResults'
+import * as React from "react"
+import Head from "next/head"
+import { useGame } from "../hooks/useGame"
+import { ToastProvider } from "../components/ui/toast-provider"
+import PlayerSetup from "../components/PlayerSetup"
+import GameSettings from "../components/GameSettings"
+import GameBoard from "../components/GameBoard"
+import Scoreboard from "../components/Scoreboard"
+import GameResults from "../components/GameResults"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Button } from "../components/ui/button"
+import { Badge } from "../components/ui/badge"
 
 export default function Home() {
   const {
@@ -21,7 +25,7 @@ export default function Home() {
     togglePause
   } = useGame()
 
-  const [showSettings, setShowSettings] = useState(false)
+  const [showSettings, setShowSettings] = React.useState(false)
 
   const currentPlayer = gameState.players[gameState.currentPlayerIndex]
 
@@ -29,52 +33,66 @@ export default function Home() {
     switch (gameState.gamePhase) {
       case 'waiting':
         return (
-          <div className="game-lobby">
-            <div className="lobby-header">
-              <h1 className="game-title">🎯 Gelişmiş Tabu Oyunu</h1>
-              <p className="game-subtitle">
-                Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
-              </p>
-            </div>
+          <div className="space-y-6">
+            {/* Header */}
+            <Card className="text-center">
+              <CardHeader>
+                <CardTitle className="game-title text-4xl font-bold">
+                  🎯 Gelişmiş Tabu Oyunu
+                </CardTitle>
+                <p className="game-subtitle text-lg text-muted-foreground">
+                  Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
+                </p>
+              </CardHeader>
+            </Card>
 
-            <div className="lobby-content">
-              <PlayerSetup
-                players={gameState.players}
-                onAddPlayer={addPlayer}
-                onRemovePlayer={removePlayer}
-                onStartGame={startGame}
-                maxPlayers={gameState.settings.maxPlayers}
+            {/* Player Setup */}
+            <PlayerSetup
+              players={gameState.players}
+              onAddPlayer={addPlayer}
+              onRemovePlayer={removePlayer}
+              onStartGame={startGame}
+              maxPlayers={gameState.settings.maxPlayers}
+            />
+
+            {/* Settings Toggle */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="px-6"
+                  >
+                    ⚙️ {showSettings ? 'Ayarları Gizle' : 'Ayarları Göster'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Settings */}
+            {showSettings && (
+              <GameSettings
+                settings={gameState.settings}
+                onUpdateSettings={updateSettings}
               />
-
-              <div className="settings-toggle">
-                <button 
-                  className="settings-btn"
-                  onClick={() => setShowSettings(!showSettings)}
-                >
-                  ⚙️ {showSettings ? 'Ayarları Gizle' : 'Ayarları Göster'}
-                </button>
-              </div>
-
-              {showSettings && (
-                <GameSettings
-                  settings={gameState.settings}
-                  onUpdateSettings={updateSettings}
-                />
-              )}
-            </div>
+            )}
           </div>
         )
 
       case 'playing':
       case 'paused':
         return (
-          <div className="game-play">
-            <div className="game-layout">
-              <div className="game-main">
+          <div className="space-y-6">
+            {/* Game Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Game Area */}
+              <div className="lg:col-span-2">
                 <GameBoard
                   currentCard={gameState.currentCard}
                   currentPlayer={currentPlayer}
                   timeLeft={gameState.timeLeft}
+                  totalTime={gameState.settings.timePerRound}
                   round={gameState.round}
                   totalRounds={gameState.settings.totalRounds}
                   onCorrect={handleCorrect}
@@ -85,7 +103,8 @@ export default function Home() {
                 />
               </div>
               
-              <div className="game-sidebar">
+              {/* Sidebar */}
+              <div className="lg:col-span-1">
                 <Scoreboard
                   players={gameState.players}
                   gameHistory={gameState.gameHistory}
@@ -124,11 +143,13 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="game-container">
-        <div className="game-wrapper">
-          {renderGameContent()}
+      <ToastProvider>
+        <div className="game-container min-h-screen flex items-center justify-center p-4">
+          <div className="game-wrapper w-full max-w-6xl">
+            {renderGameContent()}
+          </div>
         </div>
-      </div>
+      </ToastProvider>
     </>
   )
 }
