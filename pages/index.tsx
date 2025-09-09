@@ -1,182 +1,132 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Head from 'next/head'
-
-interface TabuCard {
-  word: string
-  tabooWords: string[]
-}
-
-const tabuCards: TabuCard[] = [
-  { word: "Güneş", tabooWords: ["Sıcak", "Gündüz", "Işık", "Gökyüzü", "Yaz"] },
-  { word: "Telefon", tabooWords: ["Arama", "Konuşma", "Mobil", "Ses", "İletişim"] },
-  { word: "Kitap", tabooWords: ["Okumak", "Sayfa", "Yazar", "Kütüphane", "Roman"] },
-  { word: "Araba", tabooWords: ["Sürücü", "Tekerlek", "Motor", "Yol", "Hız"] },
-  { word: "Müzik", tabooWords: ["Ses", "Melodi", "Şarkı", "Enstrüman", "Konser"] },
-  { word: "Spor", tabooWords: ["Futbol", "Koşmak", "Antrenman", "Yarış", "Takım"] },
-  { word: "Yemek", tabooWords: ["Açlık", "Lezzet", "Pişirmek", "Restoran", "Tat"] },
-  { word: "Uçak", tabooWords: ["Havacılık", "Gökyüzü", "Yolcu", "Havaalanı", "Uçmak"] },
-  { word: "Deniz", tabooWords: ["Su", "Dalga", "Kum", "Yüzme", "Sahil"] },
-  { word: "Bilgisayar", tabooWords: ["Ekran", "Klavye", "Program", "İnternet", "Teknoloji"] },
-  { word: "Kedi", tabooWords: ["Hayvan", "Evcil", "Miyav", "Tüy", "Patiler"] },
-  { word: "Çiçek", tabooWords: ["Kokulu", "Renkli", "Bahçe", "Güzel", "Doğa"] },
-  { word: "Para", tabooWords: ["Zengin", "Alışveriş", "Banknot", "Kazanç", "Harcama"] },
-  { word: "Okul", tabooWords: ["Öğrenci", "Ders", "Öğretmen", "Eğitim", "Sınıf"] },
-  { word: "Hastane", tabooWords: ["Doktor", "Hasta", "İlaç", "Tedavi", "Sağlık"] }
-]
+import { useGame } from '../hooks/useGame'
+import PlayerSetup from '../components/PlayerSetup'
+import GameSettings from '../components/GameSettings'
+import GameBoard from '../components/GameBoard'
+import Scoreboard from '../components/Scoreboard'
+import GameResults from '../components/GameResults'
 
 export default function Home() {
-  const [gameStarted, setGameStarted] = useState(false)
-  const [currentCard, setCurrentCard] = useState<TabuCard | null>(null)
-  const [score, setScore] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(60)
-  const [gameOver, setGameOver] = useState(false)
-  const [usedCards, setUsedCards] = useState<number[]>([])
+  const {
+    gameState,
+    addPlayer,
+    removePlayer,
+    updateSettings,
+    startGame,
+    handleCorrect,
+    handlePass,
+    nextPlayer,
+    resetGame,
+    togglePause
+  } = useGame()
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (gameStarted && timeLeft > 0 && !gameOver) {
-      timer = setInterval(() => {
-        setTimeLeft(timeLeft - 1)
-      }, 1000)
-    } else if (timeLeft === 0) {
-      setGameOver(true)
+  const [showSettings, setShowSettings] = useState(false)
+
+  const currentPlayer = gameState.players[gameState.currentPlayerIndex]
+
+  const renderGameContent = () => {
+    switch (gameState.gamePhase) {
+      case 'waiting':
+        return (
+          <div className="game-lobby">
+            <div className="lobby-header">
+              <h1 className="game-title">🎯 Gelişmiş Tabu Oyunu</h1>
+              <p className="game-subtitle">
+                Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
+              </p>
+            </div>
+
+            <div className="lobby-content">
+              <PlayerSetup
+                players={gameState.players}
+                onAddPlayer={addPlayer}
+                onRemovePlayer={removePlayer}
+                onStartGame={startGame}
+                maxPlayers={gameState.settings.maxPlayers}
+              />
+
+              <div className="settings-toggle">
+                <button 
+                  className="settings-btn"
+                  onClick={() => setShowSettings(!showSettings)}
+                >
+                  ⚙️ {showSettings ? 'Ayarları Gizle' : 'Ayarları Göster'}
+                </button>
+              </div>
+
+              {showSettings && (
+                <GameSettings
+                  settings={gameState.settings}
+                  onUpdateSettings={updateSettings}
+                />
+              )}
+            </div>
+          </div>
+        )
+
+      case 'playing':
+      case 'paused':
+        return (
+          <div className="game-play">
+            <div className="game-layout">
+              <div className="game-main">
+                <GameBoard
+                  currentCard={gameState.currentCard}
+                  currentPlayer={currentPlayer}
+                  timeLeft={gameState.timeLeft}
+                  round={gameState.round}
+                  totalRounds={gameState.settings.totalRounds}
+                  onCorrect={handleCorrect}
+                  onPass={handlePass}
+                  onNextPlayer={nextPlayer}
+                  onPause={togglePause}
+                  allowPass={gameState.settings.allowPass}
+                />
+              </div>
+              
+              <div className="game-sidebar">
+                <Scoreboard
+                  players={gameState.players}
+                  gameHistory={gameState.gameHistory}
+                  currentRound={gameState.round}
+                  totalRounds={gameState.settings.totalRounds}
+                />
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'finished':
+        return (
+          <GameResults
+            players={gameState.players}
+            gameHistory={gameState.gameHistory}
+            onPlayAgain={() => {
+              resetGame()
+              startGame()
+            }}
+            onNewGame={resetGame}
+          />
+        )
+
+      default:
+        return null
     }
-    return () => clearInterval(timer)
-  }, [gameStarted, timeLeft, gameOver])
-
-  const startGame = () => {
-    setGameStarted(true)
-    setScore(0)
-    setTimeLeft(60)
-    setGameOver(false)
-    setUsedCards([])
-    drawNewCard()
-  }
-
-  const drawNewCard = () => {
-    const availableCards = tabuCards.filter((_, index) => !usedCards.includes(index))
-    
-    if (availableCards.length === 0) {
-      setGameOver(true)
-      return
-    }
-
-    const randomIndex = Math.floor(Math.random() * availableCards.length)
-    const cardIndex = tabuCards.findIndex(card => card === availableCards[randomIndex])
-    
-    setCurrentCard(availableCards[randomIndex])
-    setUsedCards([...usedCards, cardIndex])
-  }
-
-  const handleCorrect = () => {
-    setScore(score + 1)
-    drawNewCard()
-  }
-
-  const handlePass = () => {
-    drawNewCard()
-  }
-
-  const resetGame = () => {
-    setGameStarted(false)
-    setCurrentCard(null)
-    setScore(0)
-    setTimeLeft(60)
-    setGameOver(false)
-    setUsedCards([])
   }
 
   return (
     <>
       <Head>
-        <title>Tabu Oyunu - Demo</title>
-        <meta name="description" content="Eğlenceli Tabu oyunu demo sitesi" />
+        <title>Gelişmiş Tabu Oyunu - Demo</title>
+        <meta name="description" content="Çoklu oyuncu, kategoriler ve zorluk seviyeleri ile gelişmiş Tabu oyunu" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="game-container">
-        <div className="game-card">
-          {!gameStarted ? (
-            <div className="text-center">
-              <h1 className="title">🎯 Tabu Oyunu</h1>
-              <p className="subtitle">
-                Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
-              </p>
-              <button
-                onClick={startGame}
-                className="btn btn-primary"
-              >
-                Oyunu Başlat
-              </button>
-            </div>
-          ) : gameOver ? (
-            <div className="text-center">
-              <h1 className="title">🎉 Oyun Bitti!</h1>
-              <div className="score-display">
-                <h2 className="score-text">Skorunuz</h2>
-                <p className="score-number">{score}</p>
-                <p className="score-text">doğru kelime!</p>
-              </div>
-              <button
-                onClick={resetGame}
-                className="btn btn-info"
-              >
-                Tekrar Oyna
-              </button>
-            </div>
-          ) : (
-            <div className="text-center">
-              <div className="game-status">
-                <div className="status-badge status-score">
-                  Skor: {score}
-                </div>
-                <div className="status-badge status-time">
-                  Süre: {timeLeft}s
-                </div>
-              </div>
-
-              {currentCard && (
-                <div className="word-card">
-                  <h2 className="word">
-                    {currentCard.word}
-                  </h2>
-                  <div className="taboo-section">
-                    <h3 className="taboo-title">🚫 Tabu Kelimeler:</h3>
-                    <div className="taboo-words">
-                      {currentCard.tabooWords.map((word, index) => (
-                        <span
-                          key={index}
-                          className="taboo-word"
-                        >
-                          {word}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="game-controls">
-                <button
-                  onClick={handleCorrect}
-                  className="btn btn-success"
-                >
-                  ✅ Doğru
-                </button>
-                <button
-                  onClick={handlePass}
-                  className="btn btn-warning"
-                >
-                  ⏭️ Geç
-                </button>
-              </div>
-
-              <p className="game-instruction">
-                Kelimeyi tabu kelimeleri kullanmadan anlatmaya çalışın!
-              </p>
-            </div>
-          )}
+        <div className="game-wrapper">
+          {renderGameContent()}
         </div>
       </div>
     </>
